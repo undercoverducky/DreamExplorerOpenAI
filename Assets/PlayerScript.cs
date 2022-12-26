@@ -11,18 +11,21 @@ using System.Text;
 
 public class PlayerScript : MonoBehaviour
 {
-    // Replace API_KEY with your actual API key
-    private string API_KEY = "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";
-    private string API_URL = "https://api.openai.com/v1/images/generations";
-
-    public float speed = 10.0f; // Speed of movement
-
-    void Start()
+    public class urlObj
     {
-        
-        StartCoroutine(GetImage());
+        public string url { get; set; }
+    }
+    public class imgResponse
+    {
+        public string created { get; set; }
+        public urlObj[] data { get; set; }
     }
 
+    private const string API_KEY = "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";
+    private const string API_URL = "https://api.openai.com/v1/images/generations";
+    private const string img_model = "image-alpha-001";
+
+    public float speed = 10.0f; // Speed of movement
     void Update()
     {
         // Get input from the 'w', 'a', 's', and 'd' keys
@@ -33,29 +36,31 @@ public class PlayerScript : MonoBehaviour
         transform.Translate(new Vector2(horizontalInput, verticalInput) * speed * Time.deltaTime);
     }
 
-    IEnumerator GetImage()
+    async void Start()
     {
-        // Replace these with your own API key and model name
-        string apiKey = API_KEY;
-        string model = "image-alpha-001";
+        StartCoroutine(recievePlayerSprite());
+    }
+
+    IEnumerator recievePlayerSprite()
+    {
 
         // Set the prompt for the image generation
-        string prompt = "Pixel RPG Top-Down Perspectiv Character";
+        string prompt = "High quality high definition dark souls boss with no background";
 
         // Set the image size
-        int width = 256;
-        int height = 256;
+        const int width = 256;
+        const int height = 256;
 
         // Set the response format to "url" so that the API returns a URL to the generated image
         string responseFormat = "url";
 
         // Set up the HTTP client
         HttpClient client = new HttpClient();
-        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
+        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {API_KEY}");
 
         // Set up the HTTP POST request
-        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, $"https://api.openai.com/v1/images/generations");
-        request.Content = new StringContent($"{{\"model\": \"{model}\", \"prompt\": \"{prompt}\", \"size\": \"{width}x{height}\", \"response_format\": \"{responseFormat}\"}}", Encoding.UTF8, "application/json");
+        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, API_URL);
+        request.Content = new StringContent($"{{\"model\": \"{img_model}\", \"prompt\": \"{prompt}\", \"size\": \"{width}x{height}\", \"response_format\": \"{responseFormat}\"}}", Encoding.UTF8, "application/json");
 
         // Send the request and get the response
         HttpResponseMessage response = client.SendAsync(request).Result;
@@ -64,36 +69,26 @@ public class PlayerScript : MonoBehaviour
         if (response.IsSuccessStatusCode)
         {
             // Get the URL of the generated image from the response
-            string imageUrl = response.Content.ReadAsStringAsync().Result;
-            string[] splitresp = imageUrl.Split(':');
-           
-            string url = "https:" + splitresp[4].Split('\"')[0];
-            Debug.Log($"Image generated at URL: {url}");
-            UnityWebRequest www = UnityWebRequestTexture.GetTexture(url);
-            yield return www.SendWebRequest();
+            string imgJSON = response.Content.ReadAsStringAsync().Result;
+            imgResponse imgResp = JsonConvert.DeserializeObject<imgResponse>(imgJSON);
 
-            // Check for errors
-            if (www.isHttpError || www.isNetworkError)
+            UnityWebRequest imgReq = UnityWebRequestTexture.GetTexture(imgResp.data[0].url);
+            yield return imgReq.SendWebRequest();
+
+            if (imgReq.isNetworkError || imgReq.isHttpError)
             {
-                Debug.LogError(www.error);
-                yield break;
+                Debug.LogError(imgReq.error);
             }
-
-            // Load the texture data into a new Texture2D
-            Texture2D texture = DownloadHandlerTexture.GetContent(www);
-
-            // Create a new sprite from the texture
-            Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero);
-
-            // Assign the sprite to the SpriteRenderer component
-            GetComponent<SpriteRenderer>().sprite = sprite;
-
+            else
+            {
+                Texture2D texture = DownloadHandlerTexture.GetContent(imgReq);
+                GetComponent<SpriteRenderer>().sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero);
+            }
         }
         else
         {
-            Debug.Log($"Error generating image: {response.ReasonPhrase}");
+            Debug.Log($"Warning: Error generating image: {response.ReasonPhrase}");
         }
-
     }
 }
 
