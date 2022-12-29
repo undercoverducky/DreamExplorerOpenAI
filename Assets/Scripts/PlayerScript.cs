@@ -25,27 +25,31 @@ public class PlayerScript : MonoBehaviour
     private const string API_URL = "https://api.openai.com/v1/images/generations";
     private const string img_model = "image-alpha-001";
 
-    public float speed = 10.0f; // Speed of movement
+    public const float speed = 5.0f; // speed of movement
+
+
     void Update()
     {
-        // Get input from the 'w', 'a', 's', and 'd' keys
+        checkInput();
+    }
+
+    void Start()
+    {
+        StartCoroutine(setPlayerSprite());
+    }
+
+    void checkInput()
+    {
+        // movement
         float horizontalInput = Input.GetAxis("Horizontal");
         float verticalInput = Input.GetAxis("Vertical");
-
-        // Use the input to move the game object
         transform.Translate(new Vector2(horizontalInput, verticalInput) * speed * Time.deltaTime);
+
+        //...
     }
 
-    async void Start()
+    IEnumerator setPlayerSprite(string prompt = "High quality high definition dark souls boss with no background")
     {
-        StartCoroutine(recievePlayerSprite());
-    }
-
-    IEnumerator recievePlayerSprite()
-    {
-
-        // Set the prompt for the image generation
-        string prompt = "High quality high definition dark souls boss with no background";
 
         // Set the image size
         const int width = 256;
@@ -75,14 +79,14 @@ public class PlayerScript : MonoBehaviour
             UnityWebRequest imgReq = UnityWebRequestTexture.GetTexture(imgResp.data[0].url);
             yield return imgReq.SendWebRequest();
 
-            if (imgReq.isNetworkError || imgReq.isHttpError)
+            if ((imgReq.result == UnityWebRequest.Result.ConnectionError) || (imgReq.result == UnityWebRequest.Result.ProtocolError))
             {
                 Debug.LogError(imgReq.error);
             }
             else
             {
                 Texture2D texture = DownloadHandlerTexture.GetContent(imgReq);
-                GetComponent<SpriteRenderer>().sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.zero);
+                GetComponent<SpriteRenderer>().sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
             }
         }
         else
