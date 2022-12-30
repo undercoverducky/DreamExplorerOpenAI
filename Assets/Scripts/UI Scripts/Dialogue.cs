@@ -10,6 +10,11 @@ public class Dialogue : MonoBehaviour
     public string[]  lines;
     public float textSpeed;
     private int index;
+
+    public string npcPromptSetting;
+    private string[] dialogues;
+
+
     void Start()
     {
         textComponent.text = string.Empty;
