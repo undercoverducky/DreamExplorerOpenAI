@@ -8,6 +8,8 @@ using Newtonsoft.Json;
 using System;
 using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
+using UnityEditor.VersionControl;
 
 public class PlayerScript : MonoBehaviour
 {
@@ -35,7 +37,9 @@ public class PlayerScript : MonoBehaviour
 
     void Start()
     {
+        
         StartCoroutine(setPlayerSprite());
+    
     }
 
     void checkInput()
@@ -47,52 +51,36 @@ public class PlayerScript : MonoBehaviour
 
         //...
     }
-
+    
     IEnumerator setPlayerSprite(string prompt = "High quality high definition dark souls boss with no background")
     {
 
-        // Set the image size
         const int width = 256;
         const int height = 256;
 
-        // Set the response format to "url" so that the API returns a URL to the generated image
-        string responseFormat = "url";
+        OpenAIAPIClient ai_client = new OpenAIAPIClient();
 
-        // Set up the HTTP client
-        HttpClient client = new HttpClient();
-        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {API_KEY}");
+        System.Threading.Tasks.Task<string> url_task = ai_client.generate_image_async(prompt, width, height);
+        //wait until url finished generating before revisitng this coroutine
+        yield return new WaitUntil(() => url_task.IsCompleted); 
+        string url = url_task.Result;
 
-        // Set up the HTTP POST request
-        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, API_URL);
-        request.Content = new StringContent($"{{\"model\": \"{img_model}\", \"prompt\": \"{prompt}\", \"size\": \"{width}x{height}\", \"response_format\": \"{responseFormat}\"}}", Encoding.UTF8, "application/json");
+        // non async method. This blocks execution, adds 4 s before game view gets rendered. Not desired
+        // string url = ai_client.generate_image(prompt, width, height)
 
-        // Send the request and get the response
-        HttpResponseMessage response = client.SendAsync(request).Result;
+        UnityWebRequest imgReq = UnityWebRequestTexture.GetTexture(url);
+        yield return imgReq.SendWebRequest();
 
-        // Check if the request was successful
-        if (response.IsSuccessStatusCode)
+        if ((imgReq.result == UnityWebRequest.Result.ConnectionError) || (imgReq.result == UnityWebRequest.Result.ProtocolError))
         {
-            // Get the URL of the generated image from the response
-            string imgJSON = response.Content.ReadAsStringAsync().Result;
-            imgResponse imgResp = JsonConvert.DeserializeObject<imgResponse>(imgJSON);
-
-            UnityWebRequest imgReq = UnityWebRequestTexture.GetTexture(imgResp.data[0].url);
-            yield return imgReq.SendWebRequest();
-
-            if ((imgReq.result == UnityWebRequest.Result.ConnectionError) || (imgReq.result == UnityWebRequest.Result.ProtocolError))
-            {
-                Debug.LogError(imgReq.error);
-            }
-            else
-            {
-                Texture2D texture = DownloadHandlerTexture.GetContent(imgReq);
-                GetComponent<SpriteRenderer>().sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
-            }
+            Debug.LogError(imgReq.error);
         }
         else
         {
-            Debug.Log($"Warning: Error generating image: {response.ReasonPhrase}");
+            Texture2D texture = DownloadHandlerTexture.GetContent(imgReq);
+            GetComponent<SpriteRenderer>().sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
         }
+
     }
 }
 
