@@ -26,14 +26,16 @@ public class Dialogue : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
-            if (textComponent.text == lines[index])
+            StopAllCoroutines();
+            nextLine();
+            /*if (textComponent.text == lines[index])
             {
                 nextLine();
             }
             else {
                 StopAllCoroutines();
                 textComponent.text = lines[index];
-            }
+            }*/
         }
     }
 
@@ -44,7 +46,12 @@ public class Dialogue : MonoBehaviour
 
     IEnumerator typeLine()
     {
-        string[] words = lines[index].Split();
+        OpenAIAPIClient ai_client = new OpenAIAPIClient();
+        System.Threading.Tasks.Task<string> line_task = ai_client.generate_text_async("Say this is a test");
+        yield return new WaitUntil(() => line_task.IsCompleted);
+        string line = line_task.Result;
+        //string[] words = lines[index].Split();
+        string[] words = line.Split();
         for (int i = 0; i < words.Length; i++)
         {
             textComponent.text += (i == words.Length - 1) ? words[i] : words[i] + " ";
