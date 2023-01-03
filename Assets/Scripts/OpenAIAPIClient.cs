@@ -23,10 +23,29 @@ public class OpenAIAPIClient
         public UrlObj[] data { get; set; }
     }
 
+    public struct Choice
+    {
+        public string text;
+        public int index;
+        public object logprobs;
+        public string finish_reason;
+    }
+
+    public struct Usage
+    {
+        public int prompt_tokens;
+        public int completion_tokens;
+        public int total_tokens;
+    }
+
     public class TextResponse
     {
-        public string created { get; set; }
-        public UrlObj[] data { get; set; }
+        public string id;
+        public string obj;
+        public int created;
+        public string model;
+        public List<Choice> choices;
+        public Usage usage;
     }
 
     private const string API_KEY = "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";
@@ -109,7 +128,7 @@ public class OpenAIAPIClient
             string textJSON = await response.Content.ReadAsStringAsync();
             Debug.Log($"Raw response: {textJSON}");
             TextResponse imgResp = JsonConvert.DeserializeObject<TextResponse>(textJSON);
-            return imgResp.data[0].url; //change
+            return imgResp.choices[0].text; //change
         }
         else
         {
