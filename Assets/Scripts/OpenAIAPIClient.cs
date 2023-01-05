@@ -113,7 +113,7 @@ public class OpenAIAPIClient
         }
     }
 
-    public async Task<string> generate_text_async(string prompt, int temp=0, int max_tok=7)
+    public async Task<string> generate_text_async(string prompt, int temp=0, int max_tok=256)
     {
         //TODO should not create http client every time methos is called. Consider using static singleton httpclient.
         HttpClient client = new HttpClient();

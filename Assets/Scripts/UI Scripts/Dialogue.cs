@@ -11,7 +11,8 @@ public class Dialogue : MonoBehaviour
     public TextMeshProUGUI textComponent;
     public float textSpeed;
     public TMP_InputField playerInputField;
-    public string npcPromptSetting = "Marv is a helpful AI chat\\n";
+    public string npcPromptSetting = "";
+    public string npcName = "";
 
     public void readStringInput(string s)
     {
@@ -19,7 +20,7 @@ public class Dialogue : MonoBehaviour
 
         if (textComponent.text == string.Empty || textComponent.text.Split("\n").Length % 2 == 1) // player's turn
         {
-            textComponent.text += "You: " + s + "\n" + "Marv: ";
+            textComponent.text += "YOU -  " + s + "\n" + npcName + " - ";
             playerInputField.text = "";
             StopAllCoroutines();
             Debug.Log("typing ai response: ");
@@ -45,7 +46,7 @@ public class Dialogue : MonoBehaviour
         string[] lines = textComponent.text.Split("\n");
         string prompt = npcPromptSetting;
         for (int i = 0; i < lines.Length; i++) {
-            prompt += lines[i] + "\\n";
+            prompt += lines[i].Replace("\"", "\\\"") + "\\n";
         }
        
         return prompt;
@@ -56,7 +57,7 @@ public class Dialogue : MonoBehaviour
         string prompt = generatePrompt();
         Debug.Log("sending prompt: \n" + prompt);
         OpenAIAPIClient ai_client = new OpenAIAPIClient();
-        System.Threading.Tasks.Task<string> line_task = ai_client.generate_text_async(prompt,0,30) ;
+        System.Threading.Tasks.Task<string> line_task = ai_client.generate_text_async(prompt) ;
         yield return new WaitUntil(() => line_task.IsCompleted);
         string line = line_task.Result;
         //string[] words = lines[index].Split();
