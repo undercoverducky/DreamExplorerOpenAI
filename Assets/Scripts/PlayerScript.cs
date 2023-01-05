@@ -13,32 +13,70 @@ using UnityEditor.VersionControl;
 
 public class PlayerScript : MonoBehaviour
 {
-    public class urlObj
-    {
-        public string url { get; set; }
-    }
-    public class imgResponse
-    {
-        public string created { get; set; }
-        public urlObj[] data { get; set; }
-    }
 
-    private const string API_KEY = "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";
-    private const string API_URL = "https://api.openai.com/v1/images/generations";
-    private const string img_model = "image-alpha-001";
-
+    OpenAIAPIClient ai_client = new OpenAIAPIClient(new HttpClient());
     public const float speed = 5.0f; // speed of movement
-
+    public string player_img_prompt;
 
     void Update()
     {
         checkInput();
+        //checkInteractableNPC(2f);
+        
     }
+
+    void checkInteractableNPC(float with_dist)
+    {
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            Collider2D[] objects = Physics2D.OverlapCircleAll(transform.position, with_dist);
+            foreach(Collider2D coll in objects)
+            {
+                if (coll.TryGetComponent(out NPCInteractable n))
+                {
+                    n.interact();
+                }
+            }
+        }
+        
+    }
+
+    public NPCInteractable getInteractableNPC(float with_dist)
+    {
+        List<NPCInteractable> interactable_list = new List<NPCInteractable>();
+        Collider2D[] objects = Physics2D.OverlapCircleAll(transform.position, with_dist);
+        foreach (Collider2D coll in objects)
+        {
+            if (coll.TryGetComponent(out NPCInteractable n))
+            {
+                interactable_list.Add(n);
+            }
+        }
+        NPCInteractable closest_npc = null;
+        foreach (NPCInteractable n in interactable_list)
+        {
+            if (closest_npc == null)
+            {
+                closest_npc = n;
+            }
+            else
+            {
+                if ((transform.position - n.transform.position).sqrMagnitude < (transform.position - closest_npc.transform.position).sqrMagnitude)
+                {
+                    closest_npc = n;
+                }
+            }
+        }
+        return closest_npc;
+
+    }
+
+
 
     void Start()
     {
         
-        StartCoroutine(setPlayerSprite());
+        StartCoroutine(setPlayerSprite(player_img_prompt));
     
     }
 
@@ -57,8 +95,6 @@ public class PlayerScript : MonoBehaviour
 
         const int width = 256;
         const int height = 256;
-
-        OpenAIAPIClient ai_client = new OpenAIAPIClient();
 
         System.Threading.Tasks.Task<string> url_task = ai_client.generate_image_async(prompt, width, height);
         //wait until url finished generating before revisitng this coroutine

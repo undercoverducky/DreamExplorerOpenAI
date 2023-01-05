@@ -53,17 +53,23 @@ public class OpenAIAPIClient
     private const string TXT_GEN_API_URL = "https://api.openai.com/v1/completions";
     private const string img_model = "image-alpha-001";
     private const string text_model = "text-davinci-003";
+    private HttpClient client;
 
-   
+    public  OpenAIAPIClient(HttpClient c)
+    {
+        client = c;
+        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {API_KEY}");
+    }
+
+
+
     public string generate_image(string prompt, int w=256, int h=256)
     {
         int width = w;
         int height = h;
         string responseFormat = "url";
 
-        //TODO should not create http client every time methos is called. Consider using static singleton httpclient. 
-        HttpClient client = new HttpClient();
-        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {API_KEY}");
+        //TODO should not create http client every time methos is called. Consider using static singleton httpclient.
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, IMG_GEN_API_URL);
         request.Content = new StringContent($"{{\"model\": \"{img_model}\", \"prompt\": \"{prompt}\", \"size\": \"{width}x{height}\", \"response_format\": \"{responseFormat}\"}}", Encoding.UTF8, "application/json");
 
@@ -91,8 +97,6 @@ public class OpenAIAPIClient
         string responseFormat = "url";
 
         //TODO should not create http client every time methos is called. Consider using static singleton httpclient.
-        HttpClient client = new HttpClient();
-        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {API_KEY}");
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, IMG_GEN_API_URL);
         request.Content = new StringContent($"{{\"model\": \"{img_model}\", \"prompt\": \"{prompt}\", \"size\": \"{width}x{height}\", \"response_format\": \"{responseFormat}\"}}", Encoding.UTF8, "application/json");
 
@@ -116,8 +120,7 @@ public class OpenAIAPIClient
     public async Task<string> generate_text_async(string prompt, int temp=0, int max_tok=256)
     {
         //TODO should not create http client every time methos is called. Consider using static singleton httpclient.
-        HttpClient client = new HttpClient();
-        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {API_KEY}");
+        
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, TXT_GEN_API_URL);
         request.Content = new StringContent($"{{\"model\": \"{text_model}\", \"prompt\": \"{prompt}\", \"temperature\": {temp}, \"max_tokens\": {max_tok}}}", Encoding.UTF8, "application/json");
 
