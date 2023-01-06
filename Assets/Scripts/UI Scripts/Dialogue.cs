@@ -90,10 +90,9 @@ public class Dialogue : MonoBehaviour
     {
         string prompt = generatePrompt();
         Debug.Log("sending prompt: \n" + prompt);
-        System.Threading.Tasks.Task<string> line_task = ai_client.generate_text_async(prompt) ;
+        System.Threading.Tasks.Task<string> line_task = ai_client.generate_text_async(prompt, frequency_penalty:2f, presence_penalty:1.0f) ;
         yield return new WaitUntil(() => line_task.IsCompleted);
         string line = line_task.Result;
-        //string[] words = lines[index].Split();
         string[] words = line.Split();
 
         for (int i = 0; i < words.Length; i++)

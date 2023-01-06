@@ -15,29 +15,14 @@ public class PlayerScript : MonoBehaviour
 {
 
     OpenAIAPIClient ai_client = new OpenAIAPIClient(new HttpClient());
-    public const float speed = 5.0f; // speed of movement
+    public float moveSpeed = 5.0f; // speed of movement
     public string player_img_prompt;
+    public float isTalking = 1.0f;
 
     void Update()
     {
         checkInput();
-        //checkInteractableNPC(2f);
         
-    }
-
-    void checkInteractableNPC(float with_dist)
-    {
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            Collider2D[] objects = Physics2D.OverlapCircleAll(transform.position, with_dist);
-            foreach(Collider2D coll in objects)
-            {
-                if (coll.TryGetComponent(out NPCInteractable n))
-                {
-                    n.interact();
-                }
-            }
-        }
         
     }
 
@@ -85,7 +70,7 @@ public class PlayerScript : MonoBehaviour
         // movement
         float horizontalInput = Input.GetAxis("Horizontal");
         float verticalInput = Input.GetAxis("Vertical");
-        transform.Translate(new Vector2(horizontalInput, verticalInput) * speed * Time.deltaTime);
+        transform.Translate(new Vector2(horizontalInput, verticalInput) * moveSpeed * Time.deltaTime * isTalking);
 
         //...
     }

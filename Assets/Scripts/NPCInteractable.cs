@@ -5,10 +5,10 @@ using UnityEngine;
 public class NPCInteractable : MonoBehaviour
 {
     public string npcName;
-    public void interact()
-    {
-        // TODO Glow, provide indication that player can press interact button
-    }
+    SpriteRenderer npc_SpriteRenderer;
+    public float last_interactable = 0f; 
+
+   
     void Start()
     {
 
@@ -16,7 +16,11 @@ public class NPCInteractable : MonoBehaviour
 
     void Update()
     {
-        
+        if (last_interactable == 0f || Time.time - last_interactable > .25f)
+        {
+            GetComponent<SpriteRenderer>().color = Color.red;
+        }
+
     }
 
 }

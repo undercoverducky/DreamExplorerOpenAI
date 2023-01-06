@@ -117,12 +117,16 @@ public class OpenAIAPIClient
         }
     }
 
-    public async Task<string> generate_text_async(string prompt, int temp=0, int max_tok=256)
+    public async Task<string> generate_text_async(string prompt, int temp=0,
+        int max_tok=256, float presence_penalty=0.0f, float frequency_penalty=0.0f,
+        float top_p=1)
     {
         //TODO should not create http client every time methos is called. Consider using static singleton httpclient.
         
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, TXT_GEN_API_URL);
-        request.Content = new StringContent($"{{\"model\": \"{text_model}\", \"prompt\": \"{prompt}\", \"temperature\": {temp}, \"max_tokens\": {max_tok}}}", Encoding.UTF8, "application/json");
+        request.Content = new StringContent($"{{\"model\": \"{text_model}\", \"prompt\": \"{prompt}\", " +
+            $"\"temperature\": {temp}, \"max_tokens\": {max_tok}, \"presence_penalty\": {presence_penalty}, " +
+            $"\"frequency_penalty\": {frequency_penalty}, \"top_p\": {top_p}}}", Encoding.UTF8, "application/json");
 
         // Using async resturns control to caller, resumes once request is done 
         HttpResponseMessage response = await client.SendAsync(request);
