@@ -5,7 +5,7 @@ using UnityEngine;
 public class PlayerInteractionManager : MonoBehaviour
 {
     [SerializeField] private GameObject dialoguePanel;
-    [SerializeField] private PlayerScript player;
+    [SerializeField] private Player player;
     void Start()
     {
        

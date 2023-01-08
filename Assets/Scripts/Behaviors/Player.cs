@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -10,20 +10,35 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEditor.VersionControl;
+using System.Net;
 
-public class PlayerScript : MonoBehaviour
+public class Player : MonoBehaviour
 {
+    [SerializeField] private UI_Inventory ui_inventory;
 
-    OpenAIAPIClient ai_client = new OpenAIAPIClient(new HttpClient());
     public float moveSpeed = 5.0f; // speed of movement
     public string player_img_prompt;
     public float isTalking = 1.0f;
 
-    void Update()
+    private Inventory inventory;
+    private OpenAIAPIClient ai_client = new OpenAIAPIClient(new HttpClient());
+
+
+    private void Awake()
+    {
+        StartCoroutine(setPlayerSprite(player_img_prompt));
+        inventory = new Inventory();
+    }
+
+    private void Start()
+    {
+        ui_inventory.set_inventory(inventory);
+    }
+
+    void Update() 
     {
         checkInput();
-        
-        
+
     }
 
     public NPCInteractable getInteractableNPC(float with_dist)
@@ -56,25 +71,24 @@ public class PlayerScript : MonoBehaviour
 
     }
 
-
-
-    void Start()
-    {
-        
-        StartCoroutine(setPlayerSprite(player_img_prompt));
-    
-    }
-
     void checkInput()
     {
         // movement
         float horizontalInput = Input.GetAxis("Horizontal");
         float verticalInput = Input.GetAxis("Vertical");
-        transform.Translate(new Vector2(horizontalInput, verticalInput) * moveSpeed * Time.deltaTime * isTalking);
-
+        GetComponent<Rigidbody2D>().velocity = new Vector2(horizontalInput, verticalInput) * moveSpeed * isTalking;
+        //transform.Translate(new Vector2(horizontalInput, verticalInput) * moveSpeed * Time.deltaTime * isTalking);
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            ui_inventory.add_item(new PlayerItem(prompt: "sword"));
+        }
+        else if (Input.GetKeyDown(KeyCode.P))
+        {
+            ui_inventory.add_item(new GItem(ItemType.Coin, 1));
+        }
         //...
     }
-    
+
     IEnumerator setPlayerSprite(string prompt = "High quality high definition dark souls boss with no background")
     {
 
@@ -83,7 +97,7 @@ public class PlayerScript : MonoBehaviour
 
         System.Threading.Tasks.Task<string> url_task = ai_client.generate_image_async(prompt, width, height);
         //wait until url finished generating before revisitng this coroutine
-        yield return new WaitUntil(() => url_task.IsCompleted); 
+        yield return new WaitUntil(() => url_task.IsCompleted);
         string url = url_task.Result;
 
         // non async method. This blocks execution, adds 4 s before game view gets rendered. Not desired
@@ -98,8 +112,10 @@ public class PlayerScript : MonoBehaviour
         }
         else
         {
+            while (!imgReq.downloadHandler.isDone)
+                yield return null;
             Texture2D texture = DownloadHandlerTexture.GetContent(imgReq);
-            GetComponent<SpriteRenderer>().sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
+            GetComponent<SpriteRenderer>().sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, .5f), 256f);
         }
 
     }
