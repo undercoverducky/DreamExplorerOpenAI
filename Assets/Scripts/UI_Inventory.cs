@@ -97,11 +97,29 @@ public class UI_Inventory : MonoBehaviour
             while (!imgReq.downloadHandler.isDone)
                 Debug.Log("waiting");
                 yield return null;
+            //Texture2D texture = RemoveColor(Color.white, DownloadHandlerTexture.GetContent(imgReq));
             Texture2D texture = DownloadHandlerTexture.GetContent(imgReq);
             Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, .5f), 256f);
             item.set_sprite(sprite);
             image.sprite = sprite;
         }
+    }
+
+    Texture2D RemoveColor(Color c, Texture2D imgs)
+    {
+        
+        Color[] pixels = imgs.GetPixels(0, 0, imgs.width, imgs.height, 0);
+
+        for (int p = 0; p < pixels.Length; p++)
+        {
+            if (pixels[p] == c)
+                pixels[p] = Color.clear;
+        }
+
+        Texture2D result_texture = new Texture2D(imgs.width, imgs.height, TextureFormat.ARGB32, false);
+        result_texture.SetPixels(pixels);
+        result_texture.Apply();
+        return result_texture;
     }
 
 }

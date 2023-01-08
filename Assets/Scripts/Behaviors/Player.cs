@@ -80,7 +80,7 @@ public class Player : MonoBehaviour
         //transform.Translate(new Vector2(horizontalInput, verticalInput) * moveSpeed * Time.deltaTime * isTalking);
         if (Input.GetKeyDown(KeyCode.Q))
         {
-            ui_inventory.add_item(new PlayerItem(prompt: "sword"));
+            ui_inventory.add_item(new PlayerItem(prompt: "cartoon sword clipart"));
         }
         else if (Input.GetKeyDown(KeyCode.P))
         {
