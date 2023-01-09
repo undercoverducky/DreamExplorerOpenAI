@@ -4,13 +4,14 @@ using System.Net.Http;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
+using System;
+using TMPro;
 
 public class UI_Inventory : MonoBehaviour
 {
     private Inventory inventory;
     private Transform itemslot_container;
     private Transform itemslot_template;
-    private OpenAIAPIClient ai_client = new OpenAIAPIClient(new HttpClient());
 
     private float itemslot_cell_size = 128f;
     private int max_cols = 4; 
@@ -23,6 +24,12 @@ public class UI_Inventory : MonoBehaviour
             itemslot_container = transform.Find("itemSlotContainer");
             itemslot_template = itemslot_container.Find("itemSlotTemplate");
         }
+        inventory.on_item_list_changed += inventory_on_item_list_changed;
+        refresh_inventory_items();
+    }
+
+    private void inventory_on_item_list_changed(object sender, System.EventArgs e)
+    {
         refresh_inventory_items();
     }
 
@@ -40,7 +47,10 @@ public class UI_Inventory : MonoBehaviour
         if (item.get_item_type() == ItemType.Player_Generated && item.get_sprite() == null)
         {
             Debug.Log("started item coroutine");
-            StartCoroutine(set_item_sprite((PlayerItem)item, image));
+            image.sprite = ItemAssets.Instance.loading_sprite;
+            //StartCoroutine(AISpriteRenderer.Instance.get_sprite(((PlayerItem)item).description, (gen_sprite) => { image.sprite = gen_sprite; }));
+            StartCoroutine(AISpriteRenderer.Instance.set_item_sprite((PlayerItem)item, this));
+            
         }
         else
         {
@@ -48,8 +58,13 @@ public class UI_Inventory : MonoBehaviour
         }
     }
 
-    private void refresh_inventory_items()
+    public void refresh_inventory_items()
     {
+        foreach (Transform child in itemslot_container)
+        {
+            if (child == itemslot_template) continue;
+            Destroy(child.gameObject);
+        }
         int x = 0;
         int y = 0;
         float itemslot_cell_size = 150f;
@@ -57,18 +72,28 @@ public class UI_Inventory : MonoBehaviour
         {
             RectTransform itemslot_rect_transform = Instantiate(itemslot_template, itemslot_container).GetComponent<RectTransform>();
             itemslot_rect_transform.gameObject.SetActive(true);
-            itemslot_rect_transform.anchoredPosition = new Vector2(x * itemslot_cell_size+50, y * itemslot_cell_size);
+            itemslot_rect_transform.anchoredPosition = new Vector2(x * itemslot_cell_size, -y * itemslot_cell_size);
             Image image = itemslot_rect_transform.Find("Image").GetComponent<Image>();
             if (item.get_item_type() == ItemType.Player_Generated && item.get_sprite() == null)
             {
-                Debug.Log("started item coroutine");
-                StartCoroutine(set_item_sprite((PlayerItem)item, image));
+                //Debug.Log("started item coroutine");
+                image.sprite = ItemAssets.Instance.loading_sprite;
+                ((PlayerItem)item).set_sprite(ItemAssets.Instance.loading_sprite);
+                StartCoroutine(AISpriteRenderer.Instance.set_item_sprite((PlayerItem)item, this));
             }
             else {
                 image.sprite = item.get_sprite();
+                TextMeshProUGUI amount_text = itemslot_rect_transform.Find("amount").GetComponent<TextMeshProUGUI>();
+                if (item.get_amount() > 1)
+                {
+                    amount_text.SetText(item.get_amount().ToString());
+                }
+                else {
+                    amount_text.SetText(String.Empty);
+                }
             }
             x++;
-            if (x > max_cols)
+            if (x > max_cols-1)
             {
                 x = 0;
                 y++;
@@ -76,50 +101,8 @@ public class UI_Inventory : MonoBehaviour
         }
     }
 
-    IEnumerator set_item_sprite(PlayerItem item, Image image)
-    {
-        System.Threading.Tasks.Task<string> url_task = ai_client.generate_image_async(item.description, 256, 256);
-        //wait until url finished generating before revisitng this coroutine
-        yield return new WaitUntil(() => url_task.IsCompleted);
-        string url = url_task.Result;
+    
 
-        UnityWebRequest imgReq = UnityWebRequestTexture.GetTexture(url);
-        yield return imgReq.SendWebRequest();
-
-        if ((imgReq.result == UnityWebRequest.Result.ConnectionError) || (imgReq.result == UnityWebRequest.Result.ProtocolError))
-        {
-            Debug.LogError("Error setting item sprite: " + imgReq.error);
-            item.set_sprite(ItemAssets.Instance.error_sprite);
-            image.sprite = ItemAssets.Instance.error_sprite;
-        }
-        else
-        {
-            while (!imgReq.downloadHandler.isDone)
-                Debug.Log("waiting");
-                yield return null;
-            //Texture2D texture = RemoveColor(Color.white, DownloadHandlerTexture.GetContent(imgReq));
-            Texture2D texture = DownloadHandlerTexture.GetContent(imgReq);
-            Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, .5f), 256f);
-            item.set_sprite(sprite);
-            image.sprite = sprite;
-        }
-    }
-
-    Texture2D RemoveColor(Color c, Texture2D imgs)
-    {
-        
-        Color[] pixels = imgs.GetPixels(0, 0, imgs.width, imgs.height, 0);
-
-        for (int p = 0; p < pixels.Length; p++)
-        {
-            if (pixels[p] == c)
-                pixels[p] = Color.clear;
-        }
-
-        Texture2D result_texture = new Texture2D(imgs.width, imgs.height, TextureFormat.ARGB32, false);
-        result_texture.SetPixels(pixels);
-        result_texture.Apply();
-        return result_texture;
-    }
+    
 
 }

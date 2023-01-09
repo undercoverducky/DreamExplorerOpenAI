@@ -10,7 +10,10 @@ public class ItemAssets : MonoBehaviour
         Instance = this;
     }
 
+    public Transform pfItemWorld;
 
     public Sprite coin_sprite;
     public Sprite error_sprite;
+    public Sprite loading_sprite;
+    public Sprite hat_sprite;
 }

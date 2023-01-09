@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEditor.VersionControl;
 using System.Net;
+using static UnityEditor.Progress;
 
 public class Player : MonoBehaviour
 {
@@ -21,18 +22,23 @@ public class Player : MonoBehaviour
     public float isTalking = 1.0f;
 
     private Inventory inventory;
-    private OpenAIAPIClient ai_client = new OpenAIAPIClient(new HttpClient());
-
+    private SpriteRenderer sprite_renderer;
 
     private void Awake()
     {
-        StartCoroutine(setPlayerSprite(player_img_prompt));
         inventory = new Inventory();
+        
     }
 
     private void Start()
     {
+        sprite_renderer = GetComponent<SpriteRenderer>();
+        sprite_renderer.sprite = ItemAssets.Instance.loading_sprite;
+        
+        StartCoroutine(AISpriteRenderer.Instance.set_sprite_renderer(sprite_renderer, player_img_prompt));
         ui_inventory.set_inventory(inventory);
+
+        
     }
 
     void Update() 
@@ -71,6 +77,16 @@ public class Player : MonoBehaviour
 
     }
 
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        ItemWorld itemWorld = other.GetComponent<ItemWorld>();
+        if (itemWorld != null) {
+            inventory.add_item(itemWorld.get_item());
+            itemWorld.destroy_item();
+        }
+        
+    }
+
     void checkInput()
     {
         // movement
@@ -80,44 +96,13 @@ public class Player : MonoBehaviour
         //transform.Translate(new Vector2(horizontalInput, verticalInput) * moveSpeed * Time.deltaTime * isTalking);
         if (Input.GetKeyDown(KeyCode.Q))
         {
-            ui_inventory.add_item(new PlayerItem(prompt: "cartoon sword clipart"));
+            inventory.add_item(new PlayerItem(prompt: "cartoon sword clipart"));
         }
         else if (Input.GetKeyDown(KeyCode.P))
         {
-            ui_inventory.add_item(new GItem(ItemType.Coin, 1));
+            inventory.add_item(new GItem(ItemType.Coin, 1));
         }
         //...
-    }
-
-    IEnumerator setPlayerSprite(string prompt = "High quality high definition dark souls boss with no background")
-    {
-
-        const int width = 256;
-        const int height = 256;
-
-        System.Threading.Tasks.Task<string> url_task = ai_client.generate_image_async(prompt, width, height);
-        //wait until url finished generating before revisitng this coroutine
-        yield return new WaitUntil(() => url_task.IsCompleted);
-        string url = url_task.Result;
-
-        // non async method. This blocks execution, adds 4 s before game view gets rendered. Not desired
-        // string url = ai_client.generate_image(prompt, width, height)
-
-        UnityWebRequest imgReq = UnityWebRequestTexture.GetTexture(url);
-        yield return imgReq.SendWebRequest();
-
-        if ((imgReq.result == UnityWebRequest.Result.ConnectionError) || (imgReq.result == UnityWebRequest.Result.ProtocolError))
-        {
-            Debug.LogError(imgReq.error);
-        }
-        else
-        {
-            while (!imgReq.downloadHandler.isDone)
-                yield return null;
-            Texture2D texture = DownloadHandlerTexture.GetContent(imgReq);
-            GetComponent<SpriteRenderer>().sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, .5f), 256f);
-        }
-
     }
 }
 

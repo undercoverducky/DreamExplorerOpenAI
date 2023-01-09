@@ -4,24 +4,29 @@ using System.Net.Http;
 using UnityEngine;
 using UnityEngine.Networking;
 using System.Threading.Tasks;
+using System;
 
 public enum ItemType
 {
     Coin,
+    Hat,
     Player_Generated
+
 }
 
 public abstract class IItem
 {
-    string description { get; set; }
-    ItemType item_type;
-    int amount { get; set;}
+    public string description { get; set; }
 
     public abstract Sprite get_sprite();
     public abstract ItemType get_item_type();
-    
+    public abstract bool is_stackable();
+    public abstract void set_amount(int a);
+    public abstract int get_amount();
+
 }
 
+[Serializable]
 public class GItem : IItem
 {
     public ItemType item_type;
@@ -33,7 +38,7 @@ public class GItem : IItem
         amount = a;
     }
 
-    public string description
+    public new string description
     {
         get { return item_type.ToString(); }
     }
@@ -44,7 +49,20 @@ public class GItem : IItem
         {
             default:
             case ItemType.Coin: return ItemAssets.Instance.coin_sprite;
+            case ItemType.Hat: return ItemAssets.Instance.hat_sprite;
 
+        }
+    }
+
+    public override bool is_stackable()
+    {
+        switch (item_type)
+        {
+            default:
+            case ItemType.Coin:
+                return true;
+            case ItemType.Hat:
+                return false;
         }
     }
 
@@ -52,21 +70,29 @@ public class GItem : IItem
     {
         return item_type;
     }
+
+    public override void set_amount(int a)
+    {
+        amount = a;
+    }
+
+    public override int get_amount() {
+        return amount;
+    }
 }
 
 public class PlayerItem : IItem
 {
     public ItemType item_type = ItemType.Player_Generated;
-
+    public new string description;
     public int amount;
-
-    public string description;
 
     private Sprite sprite = null;
 
     public PlayerItem(string prompt = "Sword") {
         description = prompt;
         amount = 1;
+        
     }
 
     public override ItemType get_item_type()
@@ -81,6 +107,21 @@ public class PlayerItem : IItem
     public void set_sprite(Sprite sprite)
     {
         this.sprite = sprite;
+    }
+
+    public override bool is_stackable()
+    {
+        return false;
+    }
+
+    public override void set_amount(int a)
+    {
+        return;
+    }
+
+    public override int get_amount()
+    {
+        return amount;
     }
 
 }

@@ -44,7 +44,7 @@ public class SetBackground : MonoBehaviour
         {
             Texture2D texture = DownloadHandlerTexture.GetContent(imgReq);
             GetComponent<SpriteRenderer>().drawMode = SpriteDrawMode.Tiled;
-            GetComponent<SpriteRenderer>().sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f), 256.0f, 0, SpriteMeshType.FullRect);
+            GetComponent<SpriteRenderer>().sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f), 64.0f, 0, SpriteMeshType.FullRect);
             GetComponent<SpriteRenderer>().size = new Vector2(100f, 100f);
         }
 
