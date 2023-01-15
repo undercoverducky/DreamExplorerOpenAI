@@ -42,12 +42,11 @@ public class PlayerInteractionManager : MonoBehaviour
     {
         dialoguePanel.SetActive(false);
         player.is_talking = 1.0f;
-
     }
 
     private void show()
     {
         dialoguePanel.SetActive(true);
-        player.is_talking = 0;
+        player.is_talking = 0.0f;
     }
 }

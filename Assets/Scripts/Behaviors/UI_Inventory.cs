@@ -13,8 +13,23 @@ public class UI_Inventory : MonoBehaviour
     private Transform itemslot_container;
     private Transform itemslot_template;
 
-    private float itemslot_cell_size = 128f;
-    private int max_cols; 
+    private float itemslot_cell_size = 150f;
+    private int max_cols;
+
+    public bool on = false;
+
+    public void show() {
+        gameObject.SetActive(true);
+        on = true;
+    }
+
+    public void hide()
+    {
+        gameObject.SetActive(false);
+        on = false;
+    }
+
+
 
     public void set_inventory(Inventory inventory)
     {
@@ -34,31 +49,7 @@ public class UI_Inventory : MonoBehaviour
         refresh_inventory_items();
     }
 
-    public void add_item(IItem item) 
-    {
-        inventory.add_item(item);
-        int x = (inventory.get_item_list().Count-1) % max_cols;
-        int y = (inventory.get_item_list().Count-1) / max_cols;
-
-        RectTransform itemslot_rect_transform = Instantiate(itemslot_template, itemslot_container).GetComponent<RectTransform>();
-        itemslot_rect_transform.gameObject.SetActive(true);
-        itemslot_rect_transform.anchoredPosition = new Vector2(x * itemslot_cell_size + 10, -y * itemslot_cell_size);
-
-        Image image = itemslot_rect_transform.Find("Image").GetComponent<Image>();
-        if (item.get_item_type() == ItemType.Player_Generated && item.get_sprite() == null)
-        {
-            Debug.Log("started item coroutine");
-            image.sprite = ItemAssets.Instance.loading_sprite;
-            //StartCoroutine(AISpriteRenderer.Instance.get_sprite(((PlayerItem)item).description, (gen_sprite) => { image.sprite = gen_sprite; }));
-            StartCoroutine(AISpriteRenderer.Instance.set_item_sprite((PlayerItem)item, this));
-            
-        }
-        else
-        {
-            image.sprite = item.get_sprite();
-        }
-    }
-
+    
     public void refresh_inventory_items()
     {
         foreach (Transform child in itemslot_container)
@@ -68,7 +59,6 @@ public class UI_Inventory : MonoBehaviour
         }
         int x = 0;
         int y = 0;
-        float itemslot_cell_size = 150f;
         foreach (IItem item in inventory.get_item_list())
         {
             RectTransform itemslot_rect_transform = Instantiate(itemslot_template, itemslot_container).GetComponent<RectTransform>();
@@ -81,7 +71,7 @@ public class UI_Inventory : MonoBehaviour
             };
             itemslot_rect_transform.anchoredPosition = new Vector2(x * itemslot_cell_size, -y * itemslot_cell_size);
             Image image = itemslot_rect_transform.Find("Image").GetComponent<Image>();
-            if (item.get_item_type() == ItemType.Player_Generated && item.get_sprite() == null)
+            /*if (item.get_item_type() == ItemType.Player_Generated && item.get_sprite() == null)
             {
                 //Debug.Log("started item coroutine");
                 image.sprite = ItemAssets.Instance.loading_sprite;
@@ -98,6 +88,16 @@ public class UI_Inventory : MonoBehaviour
                 else {
                     amount_text.SetText(String.Empty);
                 }
+            }*/
+            image.sprite = item.get_sprite();
+            TextMeshProUGUI amount_text = itemslot_rect_transform.Find("amount").GetComponent<TextMeshProUGUI>();
+            if (item.get_amount() > 1)
+            {
+                amount_text.SetText(item.get_amount().ToString());
+            }
+            else
+            {
+                amount_text.SetText(String.Empty);
             }
             x++;
             if (x > max_cols-1)

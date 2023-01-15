@@ -90,7 +90,7 @@ public class AISpriteRenderer : MonoBehaviour
         return result_texture;
     }
 
-    public IEnumerator set_item_sprite(PlayerItem item, UI_Inventory uI_Inventory)
+    public IEnumerator set_item_sprite(PlayerItem item, ItemCreation ui_item_creation = null)
     {
         System.Threading.Tasks.Task<string> url_task = ai_client.generate_image_async(item.description, 256, 256);
         //wait until url finished generating before revisitng this coroutine
@@ -114,7 +114,9 @@ public class AISpriteRenderer : MonoBehaviour
             Texture2D texture = DownloadHandlerTexture.GetContent(imgReq);
             Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, .5f), 256f);
             item.set_sprite(sprite);
-            uI_Inventory.refresh_inventory_items();
+            //ui_item_creation.set_item_image();
         }
     }
+
+    
 }

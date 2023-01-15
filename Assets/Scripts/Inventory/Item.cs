@@ -85,6 +85,7 @@ public class GItem : IItem
 
 public class PlayerItem : IItem
 {
+    public event EventHandler on_item_sprite_changed;
     public ItemType item_type = ItemType.Player_Generated;
     public new string description;
     public int amount;
@@ -109,6 +110,7 @@ public class PlayerItem : IItem
     public void set_sprite(Sprite sprite)
     {
         this.sprite = sprite;
+        on_item_sprite_changed?.Invoke(this, EventArgs.Empty);
     }
 
     public override bool is_stackable()
