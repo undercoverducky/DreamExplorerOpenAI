@@ -14,7 +14,7 @@ public class UI_Inventory : MonoBehaviour
     private Transform itemslot_template;
 
     private float itemslot_cell_size = 128f;
-    private int max_cols = 4; 
+    private int max_cols; 
 
     public void set_inventory(Inventory inventory)
     {
@@ -25,6 +25,7 @@ public class UI_Inventory : MonoBehaviour
             itemslot_template = itemslot_container.Find("itemSlotTemplate");
         }
         inventory.on_item_list_changed += inventory_on_item_list_changed;
+        max_cols = inventory.max_size;
         refresh_inventory_items();
     }
 
@@ -72,6 +73,12 @@ public class UI_Inventory : MonoBehaviour
         {
             RectTransform itemslot_rect_transform = Instantiate(itemslot_template, itemslot_container).GetComponent<RectTransform>();
             itemslot_rect_transform.gameObject.SetActive(true);
+
+            itemslot_rect_transform.GetComponent<CodeMonkey.Utils.Button_UI>().ClickFunc = () =>
+            {
+                //use_item.
+                inventory.use_item(item);
+            };
             itemslot_rect_transform.anchoredPosition = new Vector2(x * itemslot_cell_size, -y * itemslot_cell_size);
             Image image = itemslot_rect_transform.Find("Image").GetComponent<Image>();
             if (item.get_item_type() == ItemType.Player_Generated && item.get_sprite() == null)

@@ -2389,6 +2389,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: ItemWorldSpawner_coin (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 3492719511696728785, guid: 898f0a58c250a4f9ab673828068549dd, type: 3}
+      propertyPath: item.amount
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 3492719511696728790, guid: 898f0a58c250a4f9ab673828068549dd, type: 3}
       propertyPath: m_RootOrder
       value: 12

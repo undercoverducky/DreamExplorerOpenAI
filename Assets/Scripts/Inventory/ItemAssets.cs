@@ -16,4 +16,5 @@ public class ItemAssets : MonoBehaviour
     public Sprite error_sprite;
     public Sprite loading_sprite;
     public Sprite hat_sprite;
+    public Sprite lucidator_sprite;
 }

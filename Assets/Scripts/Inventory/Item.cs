@@ -10,8 +10,8 @@ public enum ItemType
 {
     Coin,
     Hat,
-    Player_Generated
-
+    Player_Generated,
+    Lucidator,
 }
 
 public abstract class IItem
@@ -50,7 +50,7 @@ public class GItem : IItem
             default:
             case ItemType.Coin: return ItemAssets.Instance.coin_sprite;
             case ItemType.Hat: return ItemAssets.Instance.hat_sprite;
-
+            case ItemType.Lucidator: return ItemAssets.Instance.lucidator_sprite;
         }
     }
 
@@ -63,6 +63,8 @@ public class GItem : IItem
                 return true;
             case ItemType.Hat:
                 return false;
+            case ItemType.Lucidator:
+                return true;
         }
     }
 
