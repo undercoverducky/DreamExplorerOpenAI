@@ -1,0 +1,6 @@
+This river is 10 ft deep with turbulent eddies and strong currents. It contains piranahs and eels.
+The majestic river stretches before you, it's depths unfathomable and current swift. In the darks, you can just barely make out some moving shapes. Fish of some sort, perhaps?
+[inventory] Use [item] to get across the river?
+[end] Turn back.
+[end] You cross the river.
+[end] You cant cross the river with that!

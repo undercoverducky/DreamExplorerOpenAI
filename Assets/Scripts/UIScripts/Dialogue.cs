@@ -15,10 +15,11 @@ public class Dialogue : MonoBehaviour
     public TextMeshProUGUI textComponent;
     public float textSpeed;
     public TMP_InputField playerInputField;
-    private string npcPromptSetting = "";
     public string npcName = "";
     OpenAIAPIClient ai_client = new OpenAIAPIClient(new HttpClient());
 
+    private string npcPromptSetting = "";
+    private NPCInteractable npc;
 
     public void readStringInput(string s)
     {
@@ -27,14 +28,21 @@ public class Dialogue : MonoBehaviour
         {
             return;
         }
-        if (textComponent.text == string.Empty || textComponent.text.Split("\n").Length % 2 == 1) // player's turn
+        if (!npc.description_only) // not scripted dialogue
         {
-            textComponent.text += "YOU -  " + s + "\n" + npcName.ToUpper() + " - ";
-            playerInputField.text = "";
-            StopAllCoroutines();
-            Debug.Log("typing ai response: ");
-            StartCoroutine(typeLine()); //Begin AI response
+            if (textComponent.text == string.Empty || textComponent.text.Split("\n").Length % 2 == 1) // player's turn
+            {
+                textComponent.text += "YOU -  " + s + "\n" + npcName.ToUpper() + " - ";
+                playerInputField.text = "";
+                StopAllCoroutines();
+                Debug.Log("typing ai response: ");
+                StartCoroutine(typeLineAI()); //Begin AI response
+            }
         }
+        else {
+            textComponent.text = npc.npcName.ToUpper() + " - " + npcPromptSetting;
+        }
+        
         
     }
     void OnDisable()
@@ -44,10 +52,36 @@ public class Dialogue : MonoBehaviour
         StopAllCoroutines();
     }
 
-    public void setNpcName(string n)
+    private void set_npc_name(string n)
     {
-        npcName = n;
-        npcPromptSetting = getNPCPromptSetting("Assets/Character/Prompts/" + npcName.ToLower() + ".txt", Encoding.UTF8);
+        this.npcName = n;
+    }
+
+
+
+    private void set_npc_prompt(string npcName)
+    {
+        if (!npc.description_only)
+        {
+            npcPromptSetting = getNPCPromptSetting("Assets/InteractableText/Characters/" + npcName.ToLower() + ".txt", Encoding.UTF8);
+        }
+        else
+        {
+            npcPromptSetting = getNPCPromptSetting("Assets/InteractableText/Objects/" + npcName.ToLower() + ".txt", Encoding.UTF8);
+        }
+       
+    }
+
+    public void set_npc(NPCInteractable npc)
+    {
+        this.npc = npc;
+        set_npc_name(npc.npcName);
+        set_npc_prompt(npc.npcName);
+        
+    }
+
+    public void begin_dialogue() {
+        StartCoroutine(typeLine());
     }
 
     string getNPCPromptSetting(string file_path, Encoding encoding)
@@ -63,7 +97,15 @@ public class Dialogue : MonoBehaviour
         string result;
         using (StreamReader streamReader = new StreamReader(file_path, encoding))
         {
-            result = streamReader.ReadToEnd();
+            if (!npc.description_only)
+            {
+                result = streamReader.ReadToEnd();
+            }
+            else {
+                result = streamReader.ReadLine();
+                result = streamReader.ReadLine();
+            }
+            
         }
         return result;
     }
@@ -72,8 +114,8 @@ public class Dialogue : MonoBehaviour
     void Start()
     {
         textComponent.text = string.Empty;
-        npcPromptSetting = getNPCPromptSetting("Assets/Character/Prompts/" + npcName.ToLower() + ".txt", Encoding.UTF8);
-
+        //npcPromptSetting = getNPCPromptSetting("Assets/Character/Prompts/" + npcName.ToLower() + ".txt", Encoding.UTF8);
+        
     }
 
     private string generatePrompt() {
@@ -86,7 +128,7 @@ public class Dialogue : MonoBehaviour
         return prompt;
     }
 
-    IEnumerator typeLine()
+    IEnumerator typeLineAI()
     {
         string prompt = generatePrompt();
         Debug.Log("sending prompt: \n" + prompt);
@@ -100,6 +142,22 @@ public class Dialogue : MonoBehaviour
             textComponent.text += (i == words.Length - 1) ? words[i] + "\n" : words[i] + " ";
             yield return new WaitForSeconds(textSpeed);
         }
+    }
+
+    IEnumerator typeLine()
+    {
+        string line = npc.npcName.ToUpper() + " - " + npcPromptSetting;
+       
+        string[] words = line.Split();
+        Debug.Log(words[0]);
+        textComponent.text = line;
+
+        /*for (int i = 0; i < words.Length; i++)
+        {
+            textComponent.text += (i == words.Length - 1) ? words[i] + "\n" : words[i] + " ";
+            yield return new WaitForSeconds(textSpeed);
+        }*/
+        yield return new WaitForSeconds(textSpeed);
     }
 
 }

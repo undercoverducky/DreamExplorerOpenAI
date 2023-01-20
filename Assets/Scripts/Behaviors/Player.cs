@@ -110,11 +110,17 @@ public class Player : MonoBehaviour
                 Debug.Log("clicked Lucidator");
                 if (!ui_item_creation.on) {
                     ui_item_creation.Show();
-                    inventory.remove_item(new GItem(ItemType.Lucidator, 1));
                 }
                 break;
             default: break;
         }
+    }
+
+    public void disable_player_action() {
+        actions_enabled = false;
+    }
+    public void enable_player_action() {
+        actions_enabled = true;
     }
 }
 

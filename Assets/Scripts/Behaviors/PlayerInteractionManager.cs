@@ -14,25 +14,27 @@ public class PlayerInteractionManager : MonoBehaviour
     private void Update()
     {
         NPCInteractable closest_npc = player.getInteractableNPC(2f);
-        if (closest_npc != null)
+        if (closest_npc != null) // interactable!
         {
-            // change color when in range
-            SpriteRenderer npc_renderer = closest_npc.GetComponent<SpriteRenderer>();
-            npc_renderer.color = Color.blue;
-            closest_npc.last_interactable = Time.time;
+            closest_npc.interactable();
         }
+        // player chooses to interact
         if (!dialoguePanel.activeInHierarchy && Input.GetKeyDown(KeyCode.E))
         {
-            if (player.getInteractableNPC(2f) != null)
+            if (closest_npc != null)
             {
+                player.disable_player_action();
                 Debug.Log(closest_npc.npcName);
                 Dialogue dialogue = dialoguePanel.GetComponentInChildren<Dialogue>();
-                dialogue.setNpcName(closest_npc.npcName);
+                dialogue.set_npc(closest_npc);
                 show();
+                dialogue.begin_dialogue();
+
             }
 
         }
-        else if (dialoguePanel.activeInHierarchy && Input.GetKeyDown(KeyCode.Escape) || closest_npc == null) {
+        else if ((dialoguePanel.activeInHierarchy && Input.GetKeyDown(KeyCode.Escape)) || closest_npc == null) {
+            player.enable_player_action();
             hide();
         }
         

@@ -27,14 +27,14 @@ public class ItemCreation : MonoBehaviour
         this.gameObject.SetActive(true);
         one_time_use = true;
         on = true;
-        player.actions_enabled = false;
+        player.disable_player_action();
         StartCoroutine(loading_dots());
     }
 
     public void Hide() {
         this.gameObject.SetActive(false);
         on = false;
-        player.actions_enabled = true;
+        player.enable_player_action();
         StopAllCoroutines();
     }
 
@@ -47,8 +47,6 @@ public class ItemCreation : MonoBehaviour
         }
         
     }
-
-    
 
     public void readStringInput(string s) {
         
@@ -101,6 +99,7 @@ public class ItemCreation : MonoBehaviour
         yield return new WaitForSecondsRealtime(5f);
         // item creation confetti and flashing
         inventory.add_item(item);
+        inventory.remove_item(new GItem(ItemType.Lucidator, 1));
         Hide();
         
     }
