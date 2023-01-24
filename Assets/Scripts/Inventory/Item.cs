@@ -95,7 +95,7 @@ public class PlayerItem : IItem
     public PlayerItem(string prompt = "Sword") {
         description = prompt;
         amount = 1;
-        
+        sprite = ItemAssets.Instance.loading_sprite;
     }
 
     public override ItemType get_item_type()

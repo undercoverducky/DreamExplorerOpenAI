@@ -25,6 +25,7 @@ public class ItemCreation : MonoBehaviour
 
     public void Show() {
         this.gameObject.SetActive(true);
+        awaiting_text.text = "Awaiting Lucidation Spark...";
         one_time_use = true;
         on = true;
         player.disable_player_action();
@@ -32,10 +33,12 @@ public class ItemCreation : MonoBehaviour
     }
 
     public void Hide() {
-        this.gameObject.SetActive(false);
+        item_image.GetComponent<Image>().sprite = null;
         on = false;
         player.enable_player_action();
         StopAllCoroutines();
+        playerInputField.text = string.Empty;
+        this.gameObject.SetActive(false);
     }
 
     public void set_inventory(Inventory inventory) {
@@ -55,7 +58,6 @@ public class ItemCreation : MonoBehaviour
             one_time_use = false;
             string prompt = s;
             PlayerItem new_item = new PlayerItem(prompt);
-            new_item.set_sprite(ItemAssets.Instance.loading_sprite);
             Image image = item_image.GetComponent<Image>();
             image.sprite = ItemAssets.Instance.loading_sprite;
             new_item.on_item_sprite_changed += set_item_image;

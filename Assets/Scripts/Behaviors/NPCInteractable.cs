@@ -8,7 +8,7 @@ public class NPCInteractable : MonoBehaviour
     SpriteRenderer npc_SpriteRenderer;
     public float last_interactable = 0f;
     public Color default_color;
-    public bool description_only = false;
+    public DialogueGraph dialogue_graph;
 
     private Color interactable_color = Color.red;
    

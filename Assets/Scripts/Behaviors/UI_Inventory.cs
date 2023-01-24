@@ -71,24 +71,6 @@ public class UI_Inventory : MonoBehaviour
             };
             itemslot_rect_transform.anchoredPosition = new Vector2(x * itemslot_cell_size, -y * itemslot_cell_size);
             Image image = itemslot_rect_transform.Find("Image").GetComponent<Image>();
-            /*if (item.get_item_type() == ItemType.Player_Generated && item.get_sprite() == null)
-            {
-                //Debug.Log("started item coroutine");
-                image.sprite = ItemAssets.Instance.loading_sprite;
-                ((PlayerItem)item).set_sprite(ItemAssets.Instance.loading_sprite);
-                StartCoroutine(AISpriteRenderer.Instance.set_item_sprite((PlayerItem)item, this));
-            }
-            else {
-                image.sprite = item.get_sprite();
-                TextMeshProUGUI amount_text = itemslot_rect_transform.Find("amount").GetComponent<TextMeshProUGUI>();
-                if (item.get_amount() > 1)
-                {
-                    amount_text.SetText(item.get_amount().ToString());
-                }
-                else {
-                    amount_text.SetText(String.Empty);
-                }
-            }*/
             image.sprite = item.get_sprite();
             TextMeshProUGUI amount_text = itemslot_rect_transform.Find("amount").GetComponent<TextMeshProUGUI>();
             if (item.get_amount() > 1)

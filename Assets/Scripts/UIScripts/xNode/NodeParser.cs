@@ -1,0 +1,222 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using TMPro;
+using UnityEngine.UI;
+using XNode;
+using static UnityEditor.Progress;
+using System.Net.Http;
+using System.Text;
+using System;
+using System.IO;
+
+public class NodeParser : MonoBehaviour
+{
+    /*
+     Move all this to the dialogue script (move type line ai into the parse node dialogue case). Add public dialogue graph to every interactable npc to be passed in
+     Create a player choice node, which displays possible choices and whether or not that icludes an input field. Processing this node
+        means pushing the text so far up and resizing the options evently in the dialogue window.
+        These choices should be templates which can be created and have mouse click functions on them like the inventory
+     When dialogue ui is activated, set the dialogu graph, check if theres a character prompt to use and begin the parse node coroutine.
+     USe "ai_generated" in dialogueline where ai should be used.
+     */
+    
+    Coroutine _parser;
+    public TextMeshProUGUI text_component;
+    public Image speaker_image;
+    public float textSpeed;
+
+    private Transform choices_container;
+    private Transform text_choice_template;
+    private Transform input_choice_template;
+    private string transcript;
+    private OpenAIAPIClient ai_client = new OpenAIAPIClient(new HttpClient());
+    private string npcPromptSetting = "";
+    private NPCInteractable npc;
+    private DialogueGraph graph;
+    // Start is called before the first frame update
+    void Start()
+    {
+        text_component.text = string.Empty;
+        choices_container = transform.Find("ChoicesContainer");
+        text_choice_template = choices_container.Find("TextChoiceTemplate");
+        input_choice_template = choices_container.Find("InputChoiceTemplate");
+        
+    }
+
+    private void set_graph(DialogueGraph graph) {
+        this.graph = graph;
+        foreach (CoreNode node in graph.nodes)
+        {
+            if (node.get_string().Equals("Start"))
+            {
+                graph.current = node;
+                break;
+            }
+        }
+    }
+
+    public void begin_parsing_graph() {
+        _parser = StartCoroutine(parse_node());
+    }
+
+    IEnumerator parse_node() {
+        CoreNode node = graph.current;
+        string data = node.get_string();
+        string[] data_parts = data.Split('/');
+
+        if (data_parts[0].Equals("Start"))
+        {
+            next_node("exit");
+        }
+        else if (data_parts[0].Equals("End"))
+        {
+            yield return new WaitForSeconds(1.5f);
+            Player.Instance.enable_player_action();
+            Player.Instance.is_talking = 1.0f;
+            gameObject.SetActive(false);
+        }
+        else if (data_parts[0].Equals("DialogueNode")) {
+            // run dialogue processing
+            text_component.text += data_parts[1].ToUpper() + " - " + data_parts[2] + "\n";
+            transcript += data_parts[1].ToUpper() + " - " + data_parts[2] + "\n";
+            speaker_image.sprite = node.get_sprite();
+            //yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
+            // return new WaitUntil(() => Input.GetMouseButtonUp(0));
+            yield return new WaitForSeconds(.5f);
+            next_node("exit");
+        }
+        else if (data_parts[0].Length > 16 && data_parts[0].Substring(0, 16).Equals("PlayerChoiceNode")) {
+            int num_choices = data_parts[0].ToCharArray()[16] - '0';
+            // "start/text/blah/input/writehere/text/blah"
+            int cell_height = 194 / num_choices;
+            for (int i = 0; i < num_choices; i++) {
+                string content = data_parts[i * 2 + 2];
+                
+                if (data_parts[i * 2 + 1].Equals("text"))
+                {
+                    RectTransform text_choice_transform = Instantiate(text_choice_template, choices_container).GetComponent<RectTransform>();
+                    text_choice_transform.gameObject.SetActive(true);
+                    text_choice_transform.GetComponent<CodeMonkey.Utils.Button_UI>().ClickFunc = () =>
+                    {
+                        //select this choice, figure out how to set multppile exits
+                        transcript += "YOU - " + content + "\n";
+                        destroy_choices();
+                        next_node("choice" + text_choice_transform.Find("TextChoice").GetComponent<TextMeshProUGUI>().text.ToCharArray()[0]);
+                    };
+                    text_choice_transform.anchoredPosition = new Vector2(0, 82-cell_height*i); //tune this position
+                    TextMeshProUGUI text = text_choice_transform.Find("TextChoice").GetComponent<TextMeshProUGUI>();
+                    text.text = (i+1).ToString() + ". " + content;
+                }
+                else if (data_parts[i * 2 + 1].Equals("input")) {
+                    RectTransform input_choice_transform = Instantiate(input_choice_template, choices_container).GetComponent<RectTransform>();
+                    input_choice_transform.gameObject.SetActive(true);
+                    input_choice_transform.anchoredPosition = new Vector2(0, 82-cell_height*i); //tune this position
+                }
+
+            }
+
+        }
+        else if (data_parts[0].Equals("AIDialogueNode"))
+        {
+            set_npc_prompt(npc.npcName);
+            text_component.text += data_parts[1].ToUpper() + " - ";
+            transcript += data_parts[1].ToUpper() + " - ";
+            speaker_image.sprite = node.get_sprite();
+            string prompt = generatePrompt();
+            // run dialogue processing
+            Debug.Log("sending prompt: \n" + prompt);
+            System.Threading.Tasks.Task<string> line_task = ai_client.generate_text_async(prompt, frequency_penalty: 2f, presence_penalty: 1.0f);
+            yield return new WaitUntil(() => line_task.IsCompleted);
+            string ai_response = line_task.Result;
+            string[] words = ai_response.Split();
+            for (int i = 0; i < words.Length; i++)
+            {
+                text_component.text += (i == words.Length - 1) ? words[i] + "\n" : words[i] + " ";
+                transcript += (i == words.Length - 1) ? words[i] + "\n" : words[i] + " ";
+                yield return new WaitForSeconds(textSpeed);
+            }
+            next_node("exit");
+        }
+        
+    }
+
+    private string generatePrompt() {
+        string[] lines = transcript.Split("\n");
+        string prompt = npcPromptSetting;
+        for (int i = 0; i < lines.Length; i++) {
+            prompt += lines[i].Replace("\"", "\\\"") + "\\n";
+        }
+        return prompt;
+    }
+
+    public void readStringInput(string s)
+    {
+        Debug.Log($"Player wrote: {s}");
+        if (!isActiveAndEnabled) //Dialogue disabled with leftover text
+        {
+            return;
+        }
+        transcript += "YOU - " + s + "\n";
+        destroy_choices();
+        next_node("choice1");
+        
+    }
+
+    public void next_node(string field_name) {
+        if (_parser != null) {
+            StopCoroutine(_parser);
+            _parser = null;
+        }
+        foreach (NodePort np in graph.current.Ports) {
+            if (np.fieldName.Equals(field_name)) {
+                graph.current = np.Connection.node as CoreNode;
+                break;
+            }
+        }
+        _parser = StartCoroutine(parse_node());
+    }
+
+    private void destroy_choices() {
+        foreach (Transform child in choices_container)
+        {
+            if (child == text_choice_template || child == input_choice_template) continue;
+            Destroy(child.gameObject);
+        }
+    }
+
+    void OnDisable() {
+        text_component.text = string.Empty;
+        transcript = string.Empty;
+        speaker_image.sprite = null;
+        graph = null;
+        destroy_choices();
+        StopAllCoroutines();
+    }
+
+   
+    private void set_npc_prompt(string npcName) {
+      npcPromptSetting = getNPCPromptSetting("Assets/InteractableText/Characters/" + npc.npcName.ToLower() + ".txt", Encoding.UTF8);
+    }
+
+    public void set_npc(NPCInteractable npc) {
+        this.npc = npc;
+        
+        set_graph(npc.dialogue_graph);
+
+    }
+
+    string getNPCPromptSetting(string file_path, Encoding encoding) {
+        if (file_path == null) {
+            throw new ArgumentNullException("path");
+        }
+        if (file_path.Length == 0) {
+            throw new ArgumentException("empty path");
+        }
+        string result;
+        using (StreamReader streamReader = new StreamReader(file_path, encoding)) {
+            result = streamReader.ReadToEnd();
+        }
+        return result;
+    }
+}

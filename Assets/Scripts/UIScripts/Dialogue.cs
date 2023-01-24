@@ -20,6 +20,8 @@ public class Dialogue : MonoBehaviour
 
     private string npcPromptSetting = "";
     private NPCInteractable npc;
+    
+   
 
     public void readStringInput(string s)
     {
@@ -28,20 +30,16 @@ public class Dialogue : MonoBehaviour
         {
             return;
         }
-        if (!npc.description_only) // not scripted dialogue
+        
+        if (textComponent.text == string.Empty || textComponent.text.Split("\n").Length % 2 == 1) // player's turn
         {
-            if (textComponent.text == string.Empty || textComponent.text.Split("\n").Length % 2 == 1) // player's turn
-            {
-                textComponent.text += "YOU -  " + s + "\n" + npcName.ToUpper() + " - ";
-                playerInputField.text = "";
-                StopAllCoroutines();
-                Debug.Log("typing ai response: ");
-                StartCoroutine(typeLineAI()); //Begin AI response
-            }
+            textComponent.text += "YOU -  " + s + "\n" + npcName.ToUpper() + " - ";
+            playerInputField.text = "";
+            StopAllCoroutines();
+            Debug.Log("typing ai response: ");
+            StartCoroutine(typeLineAI()); //Begin AI response
         }
-        else {
-            textComponent.text = npc.npcName.ToUpper() + " - " + npcPromptSetting;
-        }
+        
         
         
     }
@@ -61,15 +59,8 @@ public class Dialogue : MonoBehaviour
 
     private void set_npc_prompt(string npcName)
     {
-        if (!npc.description_only)
-        {
-            npcPromptSetting = getNPCPromptSetting("Assets/InteractableText/Characters/" + npcName.ToLower() + ".txt", Encoding.UTF8);
-        }
-        else
-        {
-            npcPromptSetting = getNPCPromptSetting("Assets/InteractableText/Objects/" + npcName.ToLower() + ".txt", Encoding.UTF8);
-        }
-       
+        
+       npcPromptSetting = getNPCPromptSetting("Assets/InteractableText/Characters/" + npcName.ToLower() + ".txt", Encoding.UTF8);
     }
 
     public void set_npc(NPCInteractable npc)
@@ -97,15 +88,7 @@ public class Dialogue : MonoBehaviour
         string result;
         using (StreamReader streamReader = new StreamReader(file_path, encoding))
         {
-            if (!npc.description_only)
-            {
-                result = streamReader.ReadToEnd();
-            }
-            else {
-                result = streamReader.ReadLine();
-                result = streamReader.ReadLine();
-            }
-            
+            result = streamReader.ReadToEnd();
         }
         return result;
     }

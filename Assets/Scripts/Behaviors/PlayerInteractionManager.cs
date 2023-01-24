@@ -19,16 +19,22 @@ public class PlayerInteractionManager : MonoBehaviour
             closest_npc.interactable();
         }
         // player chooses to interact
-        if (!dialoguePanel.activeInHierarchy && Input.GetKeyDown(KeyCode.E))
+
+        if (!dialoguePanel.activeInHierarchy && Input.GetKeyDown(KeyCode.E) && player.actions_enabled)
         {
             if (closest_npc != null)
             {
                 player.disable_player_action();
-                Debug.Log(closest_npc.npcName);
+                /*Debug.Log(closest_npc.npcName);
                 Dialogue dialogue = dialoguePanel.GetComponentInChildren<Dialogue>();
                 dialogue.set_npc(closest_npc);
                 show();
                 dialogue.begin_dialogue();
+                */
+                NodeParser node_parser = dialoguePanel.GetComponentInChildren<NodeParser>();
+                node_parser.set_npc(closest_npc);
+                show();
+                node_parser.begin_parsing_graph();
 
             }
 

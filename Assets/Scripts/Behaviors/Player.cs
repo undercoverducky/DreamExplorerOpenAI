@@ -15,6 +15,7 @@ using static UnityEditor.Progress;
 
 public class Player : MonoBehaviour
 {
+    public static Player Instance { get; set; }
     [SerializeField] private UI_Inventory ui_inventory;
     [SerializeField] private ItemCreation ui_item_creation;
 
@@ -28,6 +29,7 @@ public class Player : MonoBehaviour
     private SpriteRenderer sprite_renderer;
 
     private void Awake() {
+        Instance = this;
         inventory = new Inventory(use_item, 10);
         
     }
@@ -100,7 +102,7 @@ public class Player : MonoBehaviour
                 }
             }
         } else {
-            GetComponent<Rigidbody2D>().velocity = new Vector2(0, 0) * 0.0f;
+            GetComponent<Rigidbody2D>().velocity = new Vector2(0, 0);
         }
     }
 
