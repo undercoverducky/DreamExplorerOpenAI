@@ -22,7 +22,8 @@ public class NodeParser : MonoBehaviour
      */
     
     Coroutine _parser;
-    public TextMeshProUGUI text_component;
+    public Transform text_container;
+    public Transform text_template;
     public Image speaker_image;
     public float textSpeed;
 
@@ -37,7 +38,7 @@ public class NodeParser : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        text_component.text = string.Empty;
+        
         choices_container = transform.Find("ChoicesContainer");
         text_choice_template = choices_container.Find("TextChoiceTemplate");
         input_choice_template = choices_container.Find("InputChoiceTemplate");
@@ -78,9 +79,11 @@ public class NodeParser : MonoBehaviour
         }
         else if (data_parts[0].Equals("DialogueNode")) {
             // run dialogue processing
-            text_component.text += data_parts[1].ToUpper() + " - " + data_parts[2] + "\n";
+            //text_component.text += data_parts[1].ToUpper() + " - " + data_parts[2] + "\n";
+            create_text(data_parts[1].ToUpper() + " - " + data_parts[2]);
             transcript += data_parts[1].ToUpper() + " - " + data_parts[2] + "\n";
             speaker_image.sprite = node.get_sprite();
+            speaker_image.gameObject.SetActive(true);
             //yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
             // return new WaitUntil(() => Input.GetMouseButtonUp(0));
             yield return new WaitForSeconds(.5f);
@@ -101,6 +104,7 @@ public class NodeParser : MonoBehaviour
                     {
                         //select this choice, figure out how to set multppile exits
                         transcript += "YOU - " + content + "\n";
+                        create_text("YOU - " + text_choice_transform.Find("TextChoice").GetComponent<TextMeshProUGUI>().text.Substring(3));
                         destroy_choices();
                         next_node("choice" + text_choice_transform.Find("TextChoice").GetComponent<TextMeshProUGUI>().text.ToCharArray()[0]);
                     };
@@ -108,7 +112,7 @@ public class NodeParser : MonoBehaviour
                     TextMeshProUGUI text = text_choice_transform.Find("TextChoice").GetComponent<TextMeshProUGUI>();
                     text.text = (i+1).ToString() + ". " + content;
                 }
-                else if (data_parts[i * 2 + 1].Equals("input")) {
+                else if (data_parts[i * 2 + 1].Equals("input")) { //GUARANTEED TO BE FIRST CHOICE
                     RectTransform input_choice_transform = Instantiate(input_choice_template, choices_container).GetComponent<RectTransform>();
                     input_choice_transform.gameObject.SetActive(true);
                     input_choice_transform.anchoredPosition = new Vector2(0, 82-cell_height*i); //tune this position
@@ -117,12 +121,14 @@ public class NodeParser : MonoBehaviour
             }
 
         }
-        else if (data_parts[0].Equals("AIDialogueNode"))
+        else if (data_parts[0].Equals("AIDialogueNode")) // ONLY ALLOWED IN NPC WITH CHARACTER PROMPTS
         {
             set_npc_prompt(npc.npcName);
-            text_component.text += data_parts[1].ToUpper() + " - ";
+            //text_component.text += data_parts[1].ToUpper() + " - ";
+            TextMeshProUGUI temp_text = create_text(data_parts[1].ToUpper() + " - ");
             transcript += data_parts[1].ToUpper() + " - ";
             speaker_image.sprite = node.get_sprite();
+            speaker_image.gameObject.SetActive(true);
             string prompt = generatePrompt();
             // run dialogue processing
             Debug.Log("sending prompt: \n" + prompt);
@@ -132,13 +138,20 @@ public class NodeParser : MonoBehaviour
             string[] words = ai_response.Split();
             for (int i = 0; i < words.Length; i++)
             {
-                text_component.text += (i == words.Length - 1) ? words[i] + "\n" : words[i] + " ";
+                temp_text.text += (i == words.Length - 1) ? words[i] + "\n" : words[i] + " ";
                 transcript += (i == words.Length - 1) ? words[i] + "\n" : words[i] + " ";
                 yield return new WaitForSeconds(textSpeed);
             }
             next_node("exit");
         }
         
+    }
+
+    private TextMeshProUGUI create_text(string content) {
+        RectTransform text_transform = Instantiate(text_template, text_container).GetComponent<RectTransform>();
+        text_transform.gameObject.SetActive(true);
+        text_transform.GetComponent<TextMeshProUGUI>().text = content;
+        return text_transform.GetComponent<TextMeshProUGUI>();
     }
 
     private string generatePrompt() {
@@ -153,14 +166,14 @@ public class NodeParser : MonoBehaviour
     public void readStringInput(string s)
     {
         Debug.Log($"Player wrote: {s}");
-        if (!isActiveAndEnabled) //Dialogue disabled with leftover text
+        if (!isActiveAndEnabled || s.Equals(string.Empty)) //Dialogue disabled with leftover text
         {
             return;
         }
         transcript += "YOU - " + s + "\n";
+        create_text("YOU - " + s);
         destroy_choices();
-        next_node("choice1");
-        
+        next_node("choice1"); //GUARANTEED TO BE FIRST CHOICE
     }
 
     public void next_node(string field_name) {
@@ -185,10 +198,19 @@ public class NodeParser : MonoBehaviour
         }
     }
 
+    private void destroy_texts() {
+        foreach (Transform child in text_container)
+        {
+            if (child == text_template) continue;
+            Destroy(child.gameObject);
+        }
+    }
+
     void OnDisable() {
-        text_component.text = string.Empty;
+        destroy_texts();
         transcript = string.Empty;
         speaker_image.sprite = null;
+        speaker_image.gameObject.SetActive(false);
         graph = null;
         destroy_choices();
         StopAllCoroutines();
