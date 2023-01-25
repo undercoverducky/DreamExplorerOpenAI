@@ -3,9 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
+public class ItemUseEventArgs : EventArgs
+{
+    public IItem used_item { get; set; }
+}
+
 public class Inventory 
 {
     public event EventHandler on_item_list_changed;
+    public event EventHandler on_item_use;
     public int max_size;
     private List<IItem> item_list;
     private Action<IItem> use_item_action;
@@ -80,6 +86,7 @@ public class Inventory
 
     public void use_item(IItem item) {
         use_item_action(item);
+        on_item_use?.Invoke(this, new ItemUseEventArgs{ used_item = item});
     }
 
     public List<IItem> get_item_list() {

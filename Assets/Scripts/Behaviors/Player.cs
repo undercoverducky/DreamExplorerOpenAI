@@ -18,6 +18,7 @@ public class Player : MonoBehaviour
     public static Player Instance { get; set; }
     [SerializeField] private UI_Inventory ui_inventory;
     [SerializeField] private ItemCreation ui_item_creation;
+    [SerializeField] private NodeParser dialogue_panel;
 
     public float moveSpeed = 5.0f; // speed of movement
     public string player_img_prompt;
@@ -41,6 +42,7 @@ public class Player : MonoBehaviour
         StartCoroutine(AISpriteRenderer.Instance.set_sprite_renderer(sprite_renderer, player_img_prompt));
         ui_inventory.set_inventory(inventory);
         ui_item_creation.set_inventory(inventory);
+        dialogue_panel.set_inventory(inventory);
         inventory.add_item(new GItem(ItemType.Lucidator, 3));
     }
 

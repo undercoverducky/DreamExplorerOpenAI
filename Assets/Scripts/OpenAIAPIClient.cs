@@ -144,10 +144,14 @@ public class OpenAIAPIClient
     }
 
     public async Task<bool> ask_yes_no(string subject, string verb,string property){
-        string prompt = "Does " + subject + " " + verb + " " + property + ", yes or no?";
-        string answer = await generate_text_async(prompt, max_tok: 1);
-        return answer.Equals("yes") || answer.Equals("YES") || answer.Equals("y")
-               || answer.Equals("yes.") || answer.Equals("YES.") || answer.Equals("y.");
+        string prompt = "Answer with yes or no: Does a " + subject + " allow me to " + verb + " " + property + "?";
+        Debug.Log("Player Asks: " + prompt);
+        string answer = await generate_text_async(prompt, max_tok: 10);
+        answer = answer.Trim('\n');
+        Debug.Log("AI says " + answer);
+        
+        return answer.Equals("Yes")
+               || answer.Equals("Yes.") || answer.Equals("Yes,");
     }
 
 }

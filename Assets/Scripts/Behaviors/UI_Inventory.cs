@@ -9,6 +9,7 @@ using TMPro;
 
 public class UI_Inventory : MonoBehaviour
 {
+    public static UI_Inventory Instance { get; set; }
     private Inventory inventory;
     private Transform itemslot_container;
     private Transform itemslot_template;
@@ -17,6 +18,11 @@ public class UI_Inventory : MonoBehaviour
     private int max_cols;
 
     public bool on = false;
+
+    public void Start()
+    {
+        Instance = this;
+    }
 
     public void show() {
         gameObject.SetActive(true);
@@ -30,7 +36,9 @@ public class UI_Inventory : MonoBehaviour
     }
 
 
-
+    public Inventory get_inventory() {
+        return inventory;
+    }
     public void set_inventory(Inventory inventory)
     {
         this.inventory = inventory;

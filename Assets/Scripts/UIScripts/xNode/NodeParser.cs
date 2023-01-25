@@ -26,6 +26,7 @@ public class NodeParser : MonoBehaviour
     public Transform text_template;
     public Image speaker_image;
     public float textSpeed;
+    public UI_Inventory ui_inventory;
 
     private Transform choices_container;
     private Transform text_choice_template;
@@ -35,6 +36,8 @@ public class NodeParser : MonoBehaviour
     private string npcPromptSetting = "";
     private NPCInteractable npc;
     private DialogueGraph graph;
+    private IItem item_used = null;
+    private Inventory inventory;
     // Start is called before the first frame update
     void Start()
     {
@@ -42,9 +45,13 @@ public class NodeParser : MonoBehaviour
         choices_container = transform.Find("ChoicesContainer");
         text_choice_template = choices_container.Find("TextChoiceTemplate");
         input_choice_template = choices_container.Find("InputChoiceTemplate");
-        
+
     }
 
+    public void set_inventory(Inventory inventory) {
+        this.inventory = inventory;
+        this.inventory.on_item_use += inventory_on_item_use;
+    }
     private void set_graph(DialogueGraph graph) {
         this.graph = graph;
         foreach (CoreNode node in graph.nodes)
@@ -77,25 +84,32 @@ public class NodeParser : MonoBehaviour
             Player.Instance.is_talking = 1.0f;
             gameObject.SetActive(false);
         }
-        else if (data_parts[0].Equals("DialogueNode")) {
+        else if (data_parts[0].Equals("DialogueNode"))
+        {
             // run dialogue processing
             //text_component.text += data_parts[1].ToUpper() + " - " + data_parts[2] + "\n";
             create_text(data_parts[1].ToUpper() + " - " + data_parts[2]);
             transcript += data_parts[1].ToUpper() + " - " + data_parts[2] + "\n";
-            speaker_image.sprite = node.get_sprite();
-            speaker_image.gameObject.SetActive(true);
+            if (node.get_sprite() != null)
+            {
+                speaker_image.sprite = node.get_sprite();
+                speaker_image.gameObject.SetActive(true);
+            }
+
             //yield return new WaitUntil(() => Input.GetMouseButtonDown(0));
             // return new WaitUntil(() => Input.GetMouseButtonUp(0));
             yield return new WaitForSeconds(.5f);
             next_node("exit");
         }
-        else if (data_parts[0].Length > 16 && data_parts[0].Substring(0, 16).Equals("PlayerChoiceNode")) {
+        else if (data_parts[0].Length > 16 && data_parts[0].Substring(0, 16).Equals("PlayerChoiceNode"))
+        {
             int num_choices = data_parts[0].ToCharArray()[16] - '0';
             // "start/text/blah/input/writehere/text/blah"
             int cell_height = 194 / num_choices;
-            for (int i = 0; i < num_choices; i++) {
+            for (int i = 0; i < num_choices; i++)
+            {
                 string content = data_parts[i * 2 + 2];
-                
+
                 if (data_parts[i * 2 + 1].Equals("text"))
                 {
                     RectTransform text_choice_transform = Instantiate(text_choice_template, choices_container).GetComponent<RectTransform>();
@@ -108,14 +122,15 @@ public class NodeParser : MonoBehaviour
                         destroy_choices();
                         next_node("choice" + text_choice_transform.Find("TextChoice").GetComponent<TextMeshProUGUI>().text.ToCharArray()[0]);
                     };
-                    text_choice_transform.anchoredPosition = new Vector2(0, 82-cell_height*i); //tune this position
+                    text_choice_transform.anchoredPosition = new Vector2(0, 82 - cell_height * i); //tune this position
                     TextMeshProUGUI text = text_choice_transform.Find("TextChoice").GetComponent<TextMeshProUGUI>();
-                    text.text = (i+1).ToString() + ". " + content;
+                    text.text = (i + 1).ToString() + ". " + content;
                 }
-                else if (data_parts[i * 2 + 1].Equals("input")) { //GUARANTEED TO BE FIRST CHOICE
+                else if (data_parts[i * 2 + 1].Equals("input"))
+                { //GUARANTEED TO BE FIRST CHOICE
                     RectTransform input_choice_transform = Instantiate(input_choice_template, choices_container).GetComponent<RectTransform>();
                     input_choice_transform.gameObject.SetActive(true);
-                    input_choice_transform.anchoredPosition = new Vector2(0, 82-cell_height*i); //tune this position
+                    input_choice_transform.anchoredPosition = new Vector2(0, 82 - cell_height * i); //tune this position
                 }
 
             }
@@ -127,8 +142,11 @@ public class NodeParser : MonoBehaviour
             //text_component.text += data_parts[1].ToUpper() + " - ";
             TextMeshProUGUI temp_text = create_text(data_parts[1].ToUpper() + " - ");
             transcript += data_parts[1].ToUpper() + " - ";
-            speaker_image.sprite = node.get_sprite();
-            speaker_image.gameObject.SetActive(true);
+            if (node.get_sprite() != null)
+            {
+                speaker_image.sprite = node.get_sprite();
+                speaker_image.gameObject.SetActive(true);
+            }
             string prompt = generatePrompt();
             // run dialogue processing
             Debug.Log("sending prompt: \n" + prompt);
@@ -144,6 +162,47 @@ public class NodeParser : MonoBehaviour
             }
             next_node("exit");
         }
+        else if (data_parts[0].Equals("UseInventoryItemNode")) {
+            ui_inventory.show();
+
+            item_used = null;
+            while (item_used == null || (item_used != null && item_used.get_item_type() == ItemType.Lucidator)) {
+
+                yield return new WaitUntil(() => Input.GetMouseButtonUp(0));
+            }
+            ui_inventory.hide();
+            if (item_used.get_item_type() == ItemType.Player_Generated) {
+                System.Threading.Tasks.Task<bool> ask_task = ((UseInventoryItemNode)node).use_player_item((PlayerItem)item_used);
+                yield return new WaitUntil(() => ask_task.IsCompleted);
+                bool response = ask_task.Result;
+                if (response)
+                {
+                    Debug.Log("AI says it would work");
+                    next_node("valid");
+                }
+                else {
+                    Debug.Log("AI says it wouldn't work");
+                    next_node("invalid");
+                }
+            }
+            else {
+                Debug.Log("Player used item " + ((GItem)item_used).description);
+                if (((UseInventoryItemNode)node).use_game_item((GItem)item_used))
+                {
+                    next_node("valid");
+                }
+                else {
+                    next_node("invalid");
+                }
+            }
+            
+        }
+        
+    }
+
+    private void inventory_on_item_use(object sender, System.EventArgs e)
+    {
+        item_used = ((ItemUseEventArgs)e).used_item;
         
     }
 

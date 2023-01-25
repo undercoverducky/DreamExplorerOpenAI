@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-5207347895704416277
+--- !u!114 &-8011414692328551445
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -13,26 +13,26 @@ MonoBehaviour:
   m_Name: Dialogue
   m_EditorClassIdentifier: 
   graph: {fileID: 11400000}
-  position: {x: 408, y: 40}
+  position: {x: 632, y: 120}
   ports:
     keys:
     - entry
     - exit
     values:
     - _fieldName: entry
-      _node: {fileID: -5207347895704416277}
+      _node: {fileID: -8011414692328551445}
       _typeQualifiedName: System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089
       connections:
-      - fieldName: choice2
-        node: {fileID: -1390011607345068549}
+      - fieldName: valid
+        node: {fileID: 4714777207652767142}
         reroutePoints: []
       _direction: 0
       _connectionType: 0
       _typeConstraint: 0
       _dynamic: 0
     - _fieldName: exit
-      _node: {fileID: -5207347895704416277}
+      _node: {fileID: -8011414692328551445}
       _typeQualifiedName: System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089
       connections:
@@ -46,8 +46,8 @@ MonoBehaviour:
   entry: 0
   exit: 0
   speaker_name: river
-  dialogue_line: you make it over!
-  sprite: {fileID: 21300000, guid: caeaecd51b1754272b6242529188142b, type: 3}
+  dialogue_line: you made it across
+  sprite: {fileID: 0}
 --- !u!114 &-1390011607345068549
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -86,7 +86,7 @@ MonoBehaviour:
         PublicKeyToken=b77a5c561934e089
       connections:
       - fieldName: entry
-        node: {fileID: -5207347895704416277}
+        node: {fileID: 4714777207652767142}
         reroutePoints: []
       _direction: 1
       _connectionType: 0
@@ -109,7 +109,7 @@ MonoBehaviour:
   entry: 0
   player_choices:
   - text/Jump in river
-  - text/Jump over river
+  - text/Use an item to cross
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -127,8 +127,9 @@ MonoBehaviour:
   - {fileID: 3789431618033319197}
   - {fileID: -1390011607345068549}
   - {fileID: 2419604339485121363}
-  - {fileID: -5207347895704416277}
   - {fileID: 5256919641298893194}
+  - {fileID: 4714777207652767142}
+  - {fileID: -8011414692328551445}
   current: {fileID: 5256919641298893194}
 --- !u!114 &2419604339485121363
 MonoBehaviour:
@@ -143,7 +144,7 @@ MonoBehaviour:
   m_Name: Dialogue
   m_EditorClassIdentifier: 
   graph: {fileID: 11400000}
-  position: {x: 408, y: -168}
+  position: {x: 488, y: -168}
   ports:
     keys:
     - entry
@@ -156,6 +157,9 @@ MonoBehaviour:
       connections:
       - fieldName: choice1
         node: {fileID: -1390011607345068549}
+        reroutePoints: []
+      - fieldName: invalid
+        node: {fileID: 4714777207652767142}
         reroutePoints: []
       _direction: 0
       _connectionType: 0
@@ -259,6 +263,68 @@ MonoBehaviour:
       _typeConstraint: 0
       _dynamic: 0
   exit: 0
+--- !u!114 &4714777207652767142
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 10a2f554a579942a0a632266b8bc40e8, type: 3}
+  m_Name: Use Inventory Item
+  m_EditorClassIdentifier: 
+  graph: {fileID: 11400000}
+  position: {x: 376, y: 56}
+  ports:
+    keys:
+    - entry
+    - valid
+    - invalid
+    values:
+    - _fieldName: entry
+      _node: {fileID: 4714777207652767142}
+      _typeQualifiedName: System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+      connections:
+      - fieldName: choice2
+        node: {fileID: -1390011607345068549}
+        reroutePoints: []
+      _direction: 0
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: valid
+      _node: {fileID: 4714777207652767142}
+      _typeQualifiedName: System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+      connections:
+      - fieldName: entry
+        node: {fileID: -8011414692328551445}
+        reroutePoints: []
+      _direction: 1
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+    - _fieldName: invalid
+      _node: {fileID: 4714777207652767142}
+      _typeQualifiedName: System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral,
+        PublicKeyToken=b77a5c561934e089
+      connections:
+      - fieldName: entry
+        node: {fileID: 2419604339485121363}
+        reroutePoints: []
+      _direction: 1
+      _connectionType: 0
+      _typeConstraint: 0
+      _dynamic: 0
+  entry: 0
+  valid: 0
+  invalid: 0
+  valid_items: 00000000
+  verb: get to the other side
+  property: of a river
 --- !u!114 &5256919641298893194
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -286,7 +352,7 @@ MonoBehaviour:
         node: {fileID: 2419604339485121363}
         reroutePoints: []
       - fieldName: exit
-        node: {fileID: -5207347895704416277}
+        node: {fileID: -8011414692328551445}
         reroutePoints: []
       _direction: 0
       _connectionType: 0

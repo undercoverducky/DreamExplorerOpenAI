@@ -1936,6 +1936,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ui_inventory: {fileID: 1527592175}
   ui_item_creation: {fileID: 2090513633}
+  dialogue_panel: {fileID: 1841027832}
   moveSpeed: 5
   player_img_prompt: 'stick figure holding a sword '
   is_talking: 1
@@ -3538,6 +3539,7 @@ MonoBehaviour:
   text_template: {fileID: 354258013}
   speaker_image: {fileID: 1285493912}
   textSpeed: 0.1
+  ui_inventory: {fileID: 1527592175}
 --- !u!1 &1866742253
 GameObject:
   m_ObjectHideFlags: 0
@@ -3593,7 +3595,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Content: {fileID: 401446997}
-  m_Horizontal: 1
+  m_Horizontal: 0
   m_Vertical: 1
   m_MovementType: 1
   m_Elasticity: 0.1
