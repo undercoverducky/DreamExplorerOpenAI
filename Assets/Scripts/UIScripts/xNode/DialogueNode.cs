@@ -19,4 +19,9 @@ public class DialogueNode : CoreNode {
 	public override Sprite get_sprite() {
 		return sprite;
 	}
+
+    public override void set_sprite(Sprite s)
+    {
+        sprite = s;
+    }
 }

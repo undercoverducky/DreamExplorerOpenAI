@@ -24,4 +24,8 @@ public class CoreNode : Node {
     {
         return null;
     }
+
+	public virtual void set_sprite(Sprite s) {
+		return;
+	}
 }

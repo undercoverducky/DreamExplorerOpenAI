@@ -19,4 +19,9 @@ public class AIDialogueNode : CoreNode {
     {
         return sprite;
     }
+
+    public override void set_sprite(Sprite s)
+    {
+        sprite = s;
+    }
 }

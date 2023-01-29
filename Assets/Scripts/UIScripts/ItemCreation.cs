@@ -98,7 +98,7 @@ public class ItemCreation : MonoBehaviour
 
     public IEnumerator add_item_to_inventory(PlayerItem item)
     {
-        yield return new WaitForSecondsRealtime(5f);
+        yield return new WaitForSecondsRealtime(1.5f);
         // item creation confetti and flashing
         inventory.add_item(item);
         inventory.remove_item(new GItem(ItemType.Lucidator, 1));

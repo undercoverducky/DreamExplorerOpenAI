@@ -70,6 +70,10 @@ public class NodeParser : MonoBehaviour
 
     IEnumerator parse_node() {
         CoreNode node = graph.current;
+        if (node.get_sprite() == null && npc != null && npc.npc_sprite != null)
+        {
+            node.set_sprite(npc.npc_sprite);
+        }
         string data = node.get_string();
         string[] data_parts = data.Split('/');
 

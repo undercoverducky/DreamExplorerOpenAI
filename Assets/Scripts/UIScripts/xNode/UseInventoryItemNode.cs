@@ -11,7 +11,6 @@ public class UseInventoryItemNode : CoreNode {
     [Output] public int valid;
     [Output] public int invalid;
     public ItemType[] valid_items;
-    public string verb;
     public string property;
 
     private OpenAIAPIClient ai_client = new OpenAIAPIClient(new HttpClient());
@@ -23,7 +22,7 @@ public class UseInventoryItemNode : CoreNode {
     }
 
     public async Task<bool> use_player_item(PlayerItem item) {
-        return await ai_client.ask_yes_no(item.description, verb, property);
+        return await ai_client.ask_yes_no(item.description, property);
     }
 
     public bool use_game_item(GItem item)

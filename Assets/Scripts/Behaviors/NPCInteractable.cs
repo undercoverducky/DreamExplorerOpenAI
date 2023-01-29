@@ -9,12 +9,13 @@ public class NPCInteractable : MonoBehaviour
     public float last_interactable = 0f;
     public Color default_color;
     public DialogueGraph dialogue_graph;
+    public Sprite npc_sprite;
 
     private Color interactable_color = Color.red;
    
     void Start()
     {
-
+        GetComponent<SpriteRenderer>().sprite = npc_sprite;
     }
 
     void Update()
