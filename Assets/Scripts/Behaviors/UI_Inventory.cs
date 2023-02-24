@@ -19,8 +19,14 @@ public class UI_Inventory : MonoBehaviour
 
     public bool on = false;
 
-    public void Start()
+    private void Awake()
     {
+        if (Instance != null)
+        {
+            Destroy(this.gameObject);
+            return;
+        }
+
         Instance = this;
     }
 

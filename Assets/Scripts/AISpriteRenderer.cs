@@ -15,7 +15,14 @@ public class AISpriteRenderer : MonoBehaviour
 
     public void Awake()
     {
+        if (Instance != null)
+        {
+            Destroy(this.gameObject);
+            return;
+        }
+
         Instance = this;
+        GameObject.DontDestroyOnLoad(this.gameObject);
     }
    
     public IEnumerator set_sprite_renderer(SpriteRenderer sr, string prompt)

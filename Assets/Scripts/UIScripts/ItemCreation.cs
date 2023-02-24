@@ -5,9 +5,11 @@ using UnityEngine;
 using static UnityEditor.Progress;
 using UnityEngine.UI;
 using UnityEngine.Windows;
+using Unity.VisualScripting;
 
 public class ItemCreation : MonoBehaviour
 {
+    public static ItemCreation Instance { get; set; }
     public TMP_InputField playerInputField;
     public bool on = false;
     public Player player;
@@ -16,11 +18,16 @@ public class ItemCreation : MonoBehaviour
     private Transform item_image;
     private Inventory inventory;
     private bool one_time_use = true;
-    
-    // Start is called before the first frame update
-    void Start()
+
+    private void Awake()
     {
-        
+        if (Instance != null)
+        {
+            Destroy(this.gameObject);
+            return;
+        }
+
+        Instance = this;
     }
 
     public void Show() {

@@ -27,6 +27,7 @@ public class NodeParser : MonoBehaviour
     public Image speaker_image;
     public float textSpeed;
     public UI_Inventory ui_inventory;
+    public static NodeParser Instance { get; set; }
 
     private Transform choices_container;
     private Transform text_choice_template;
@@ -38,10 +39,22 @@ public class NodeParser : MonoBehaviour
     private DialogueGraph graph;
     private IItem item_used = null;
     private Inventory inventory;
-    // Start is called before the first frame update
+
+    private void Awake()
+    {
+        if (Instance != null)
+        {
+            Destroy(this.gameObject);
+            return;
+        }
+
+        Instance = this;
+        GameObject.DontDestroyOnLoad(this.gameObject);
+    }
+
     void Start()
     {
-        
+
         choices_container = transform.Find("ChoicesContainer");
         text_choice_template = choices_container.Find("TextChoiceTemplate");
         input_choice_template = choices_container.Find("InputChoiceTemplate");

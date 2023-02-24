@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -48,7 +49,7 @@ public class OpenAIAPIClient
         public Usage usage;
     }
 
-    private const string API_KEY = "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";
+    private string API_KEY;
     private const string IMG_GEN_API_URL = "https://api.openai.com/v1/images/generations";
     private const string TXT_GEN_API_URL = "https://api.openai.com/v1/completions";
     private const string img_model = "image-alpha-001";
@@ -58,10 +59,21 @@ public class OpenAIAPIClient
     public  OpenAIAPIClient(HttpClient c)
     {
         client = c;
+        API_KEY = retrieve_api_key();
+        Debug.Log(API_KEY);
+        // "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";
         client.DefaultRequestHeaders.Add("Authorization", $"Bearer {API_KEY}");
     }
 
+    private string retrieve_api_key() {
+        string result;
+        using (StreamReader streamReader = new StreamReader("api_key.txt", Encoding.UTF8))
+        {
+            result = streamReader.ReadToEnd();
+        }
 
+        return result.Trim();
+    }
 
     public string generate_image(string prompt, int w=256, int h=256)
     {
