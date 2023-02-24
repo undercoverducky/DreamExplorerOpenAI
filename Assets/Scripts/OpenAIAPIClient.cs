@@ -61,7 +61,6 @@ public class OpenAIAPIClient
         client = c;
         API_KEY = retrieve_api_key();
         Debug.Log(API_KEY);
-        // "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";
         client.DefaultRequestHeaders.Add("Authorization", $"Bearer {API_KEY}");
     }
 
